@@ -1,21 +1,26 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config(); 
+require("dotenv").config();
 
 const app = express();
 
-// Middleware
+// Global Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("Product Management API is running 🚀");
+
+// Routes (will be added later)
+// app.use("/api/auth", require("./routes/auth.routes"));
+// app.use("/api/products", require("./routes/product.routes"));
+// app.use("/api/reports", require("./routes/report.routes"));
+
+// Global error handler (basic)
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
 });
 
-// Server (use .env PORT)
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+module.exports = app;

@@ -45,7 +45,35 @@ exports.getProductById = async (id) => {
 
 // Update product
 exports.updateProduct = async (id, data) => {
-  const updated = await productRepository.update(id, data);
+  if (!id) {
+    throw new Error("Product ID is required");
+  }
+
+  const { name, price, quantity } = data;
+
+  if (!name || price == null || quantity == null) {
+    throw new Error("All product fields are required");
+  }
+
+  if (price <= 0 || quantity < 0) {
+    throw new Error("Invalid price or quantity");
+  }
+
+  const productName = name.toLowerCase().trim();
+
+  // Check if another product already has this name
+  const duplicateProduct =
+    await productRepository.findByNameAndID(productName, id);
+
+  if (duplicateProduct) {
+    throw new Error("Product name already exists");
+  }
+
+  const updated = await productRepository.update(id, {
+    name: productName,
+    price,
+    quantity,
+  });
 
   if (!updated) {
     throw new Error("Product not found or not updated");
@@ -53,6 +81,7 @@ exports.updateProduct = async (id, data) => {
 
   return updated;
 };
+
 
 // Delete product
 exports.deleteProduct = async (id) => {

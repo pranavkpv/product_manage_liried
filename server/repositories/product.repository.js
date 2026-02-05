@@ -88,8 +88,26 @@ exports.findByName = (name) => {
     db.query(query, [name], (err, results) => {
       if (err) return reject(err);
 
-      resolve(results[0]); 
+      resolve(results[0]);
     });
   });
 };
+
+// Find product by name excluding a specific ID
+exports.findByNameAndID = (name, id) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT *
+      FROM products
+      WHERE name = ? AND id != ?
+      LIMIT 1
+    `;
+
+    db.query(query, [name, id], (err, results) => {
+      if (err) return reject(err);
+      resolve(results[0] || null);
+    });
+  });
+};
+
 

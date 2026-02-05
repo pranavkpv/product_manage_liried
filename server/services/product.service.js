@@ -8,12 +8,24 @@ exports.createProduct = async (data) => {
     throw new Error("All product fields are required");
   }
 
+  if (price <= 0 || quantity < 0) {
+    throw new Error("Invalid price or quantity");
+  }
+
+  const productName = name.toLowerCase().trim();
+
+  const existProduct = await productRepository.findByName(productName);
+  if (existProduct) {
+    throw new Error("Product name already exists");
+  }
+
   return await productRepository.create({
-    name,
+    name: productName,
     price,
     quantity,
   });
 };
+
 
 // Get all products
 exports.getAllProducts = async () => {

@@ -22,7 +22,7 @@ exports.verifyRefreshToken = (refreshToken, REFRESH_SECRET) => {
    return decoded
 }
 
-exports.verifyAccessTokenFun = (token, ACCESS_SECRET)=>{
+exports.verifyAccessTokenFun = (token)=>{
    const decoded = jwt.verify(token, ACCESS_SECRET);
    return decoded
 }

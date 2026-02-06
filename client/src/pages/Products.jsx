@@ -5,8 +5,8 @@ import {
   getProductsApi,
   updateProductApi,
 } from "../api/server";
-import { FaTrash, FaEdit, FaSave, FaTimes, FaPlus } from "react-icons/fa";
-import { Loader2, AlertCircle } from "lucide-react";
+import { FaTrash, FaEdit, FaSave, FaTimes, FaPlus, FaExclamationTriangle } from "react-icons/fa";
+import { Loader2, AlertCircle, X } from "lucide-react";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -23,6 +23,9 @@ export default function Products() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Delete modal state
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, productId: null, productName: "" });
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -95,10 +98,27 @@ export default function Products() {
     }
   };
 
-  const deleteProduct = async (id) => {
-    if (!window.confirm("Delete this product?")) return;
-    await deleteProductApi(id);
-    fetchProducts();
+  // Updated delete handler - opens modal instead of direct delete
+  const openDeleteModal = (id, name) => {
+    setDeleteModal({ isOpen: true, productId: id, productName: name });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setLoading(true);
+      await deleteProductApi(deleteModal.productId);
+      fetchProducts();
+      setError("");
+    } catch (error) {
+      setError(error.message || "Failed to delete product");
+    } finally {
+      setLoading(false);
+      setDeleteModal({ isOpen: false, productId: null, productName: "" });
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ isOpen: false, productId: null, productName: "" });
   };
 
   return (
@@ -324,8 +344,9 @@ export default function Products() {
                             >
                               <FaEdit className="w-5 h-5" />
                             </button>
+                            {/* Updated delete button - opens modal */}
                             <button
-                              onClick={() => deleteProduct(p.id)}
+                              onClick={() => openDeleteModal(p.id, p.name)}
                               className="p-3 rounded-2xl bg-red-500/90 hover:bg-red-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:rotate-12 transition-all duration-200"
                               title="Delete"
                             >
@@ -343,24 +364,79 @@ export default function Products() {
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in" 
+            onClick={closeDeleteModal}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 animate-pop-in">
+            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 dark:border-gray-800/60 w-full max-w-md mx-4 transform scale-100">
+              {/* Header */}
+              <div className="p-8 border-b border-gray-200/50 dark:border-gray-800/50 flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-2xl flex items-center justify-center mt-1">
+                  <FaExclamationTriangle className="w-7 h-7 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    Delete Product?
+                  </h3>
+                  <p className="text-lg text-gray-700 dark:text-gray-300">
+                    Are you sure you want to delete <span className="font-semibold text-red-600 dark:text-red-400">"{deleteModal.productName}"</span>?
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="p-8 pt-0 flex gap-4 justify-end bg-gradient-to-t from-white/50 dark:from-gray-900/50">
+                <button
+                  onClick={closeDeleteModal}
+                  disabled={loading}
+                  className="px-6 py-3 rounded-2xl bg-gray-200/80 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold transition-all duration-200 flex items-center gap-2 disabled:opacity-60"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={loading}
+                  className="px-6 py-3 rounded-2xl bg-red-500/90 hover:bg-red-600 active:bg-red-700 text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FaTrash className="w-4 h-4" />}
+                  {loading ? "Deleting..." : "Delete Product"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       <style jsx>{`
-        @keyframes fade-in-up {
+        @keyframes fade-in {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        @keyframes pop-in {
+          0% { transform: scale(0.95) translateY(20px); opacity: 0; }
+          70% { transform: scale(1.03); }
+          100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-fade-in { animation: fade-in 0.3s ease-out; }
+        .animate-pop-in { animation: pop-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .animate-fade-in-up {
           0% { opacity: 0; transform: translateY(30px); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        @keyframes pop-in {
-          0% { transform: scale(0.95); opacity: 0; }
-          70% { transform: scale(1.03); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes shake {
+        .animate-pop-in { animation: pop-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .animate-shake {
           0%, 100% { transform: translateX(0); }
           25% { transform: translateX(-4px); }
           75% { transform: translateX(4px); }
         }
-        .animate-fade-in-up { animation: fade-in-up 0.8s ease-out; }
-        .animate-pop-in { animation: pop-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .animate-shake { animation: shake 0.5s ease-in-out; }
         .animate-pulse-slow {
           animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }

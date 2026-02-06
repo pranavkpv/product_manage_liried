@@ -1,9 +1,9 @@
 import api from "./axios";
 
 export const loginApi = async (username, password) => {
-   console.log(api)
-   await api.post('/auth/login', { username, password }
+   const result = await api.post('/auth/login', { username, password }
    )
+   return result.data
 }
 export const getProductsApi = async () => await api.get('/products')
 export const addProductApi = async (data) => await api.post('/products', data)

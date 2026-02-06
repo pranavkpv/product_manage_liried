@@ -1,7 +1,6 @@
 const app = require("./app");
 require("./config/db");
 const createTables = require("./config/schema");
-
 const { PORT } = require("./config/env");
 
 // Create tables on startup

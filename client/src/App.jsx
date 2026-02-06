@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
 import Report from "./pages/Report";
 import Products from "./pages/Products";
 
@@ -10,21 +11,28 @@ export default function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
         <Route
           path="/products"
           element={
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <Products />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/report"
           element={
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <Report />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
       </Routes>

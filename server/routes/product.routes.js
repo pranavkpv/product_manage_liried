@@ -8,6 +8,10 @@ const {
   updateProduct,
   deleteProduct,
 } = require("../controllers/product.controller");
+const { verifyAccessToken } = require("../miidleware/auth.middleware");
+
+
+router.use(verifyAccessToken)
 
 // Create product
 router.post("/", createProduct);
